@@ -158,7 +158,7 @@ final class MyViewModelTests: XCTestCase {
 You can use a custom URL Session and Interceptors to inject into the APIClient.
 ```swift
 let apiClient = APIClient(
-    session: URLSession, // Inject Mocked Session
+    session: NetworkSessionProtocol, // Inject Mocked Session
     interceptors: [any NetworkInterceptor] // Inject Mocked Interceptors
 )
 ```
