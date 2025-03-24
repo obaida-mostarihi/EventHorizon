@@ -3,12 +3,12 @@ import Foundation
 public final class APIClient: APIClientProtocol {
 
     // MARK: - Properties -
-    public let session: URLSession
+    public let session: NetworkSessionProtocol
     public let interceptors: [any NetworkInterceptor]
 
     // MARK: - Initialization -
     public init(
-        session: URLSession = .shared,
+        session: NetworkSessionProtocol = NetworkSession(),
         interceptors: [any NetworkInterceptor] = []
     ) {
         self.session = session
@@ -75,15 +75,17 @@ private extension APIClient {
             mutableRequest = interceptor.intercept(request: mutableRequest)
         }
 
-        let session: URLSession
-        if let progressDelegate {
-            session = URLSession(configuration: .default, delegate: progressDelegate, delegateQueue: nil)
-        } else {
-            session = self.session
-        }
+        // If a progress delegate is provided, create a new session instance.
+        let sessionToUse: NetworkSessionProtocol = {
+            if let progressDelegate {
+                return NetworkSession(session: URLSession(configuration: .default, delegate: progressDelegate, delegateQueue: nil))
+            } else {
+                return session
+            }
+        }()
 
         do {
-            let (data, response) = try await session.data(for: mutableRequest)
+            let (data, response) = try await sessionToUse.data(for: mutableRequest)
 
             // Apply response interceptors
             var modifiedData = data

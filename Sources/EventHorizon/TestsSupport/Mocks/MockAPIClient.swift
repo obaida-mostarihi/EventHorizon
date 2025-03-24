@@ -5,115 +5,87 @@
 
 import Foundation
 
-/// A mock implementation of `APIClientProtocol` for unit testing API requests.
-///
-/// `MockAPIClient` allows you to simulate API responses, errors, and request handling,
-/// making it useful for testing network-related functionality without actual network calls.
-///
-/// ## Usage
-/// ```swift
-/// let mockClient = MockAPIClient()
-/// try mockClient.setMockResponse(User(name: "John Doe"), forPath: "/user")
-/// let user: User = try await mockClient.request(MockAPIEndpoint(path: "/user"), decoder: JSONDecoder())
-/// ```
-///
-/// - Note: This actor ensures thread safety for mock response management.
 public actor MockAPIClient: APIClientProtocol {
 
-    /// The list of network interceptors used in the client.
+    // MARK: - Properties -
     public let interceptors: [NetworkInterceptor]
+    public let session: NetworkSessionProtocol
 
-    /// The URL session used for requests (unused in the mock).
-    public let session: URLSession
-
-    /// A dictionary mapping endpoint paths to mock response data.
-    private var responseMap: [String: Data] = [:]
-
-    /// A flag indicating whether requests should throw an error.
-    private var shouldThrowError: Bool = false
-
-    /// Initializes the mock API client with optional network interceptors.
-    /// - Parameter interceptors: An array of `NetworkInterceptor` instances (default: `[MockNetworkInterceptor()]`).
-    public init(interceptors: [NetworkInterceptor] = [MockNetworkInterceptor()]) {
+    public init(
+        interceptors: [NetworkInterceptor] = [MockNetworkInterceptor()]
+    ) {
         self.interceptors = interceptors
-        self.session = URLSession(configuration: .default)
+        self.session = NetworkSession(
+            session: URLSession(configuration: .ephemeral)
+        )
     }
 
-    /// Simulates a network request and returns a decoded response.
-    /// - Parameters:
-    ///   - endpoint: The API endpoint to request.
-    ///   - decoder: The JSON decoder used to parse the response.
-    /// - Returns: A decoded response of type `T`.
-    /// - Throws: `URLError(.badServerResponse)` if no mock response is found or if `shouldThrowError` is set to `true`.
+    // MARK: - Methods -
+    var requestReturnValue: [String: Encodable] = [:]
+    var shouldThrowErrorForRequest: Bool = false
     public func request<T: Decodable & Sendable>(
         _ endpoint: any APIEndpointProtocol,
         decoder: JSONDecoder
     ) async throws -> T {
-        if shouldThrowError {
+        if shouldThrowErrorForRequest {
             throw URLError(.badServerResponse)
         }
-        guard let data = responseMap[endpoint.path] else {
+        guard let encodable = requestReturnValue[endpoint.path] else {
             throw URLError(.badServerResponse)
         }
+
+        if let response = encodable as? T {
+            return response
+        }
+
+        let data = try JSONEncoder().encode(encodable)
         return try decoder.decode(T.self, from: data)
     }
 
-    /// Simulates a network request that does not return a response.
-    /// - Parameter endpoint: The API endpoint to request.
-    /// - Throws: `URLError(.badServerResponse)` if `shouldThrowError` is set to `true`.
+    var requestVoidReturnValue: [String: Void] = [:]
+    var shouldThrowErrorForRequestVoid: Bool = false
     public func request(
         _ endpoint: any APIEndpointProtocol
     ) async throws {
-        if shouldThrowError {
+        if shouldThrowErrorForRequestVoid {
             throw URLError(.badServerResponse)
         }
     }
 
-    /// Simulates a network request that supports progress updates.
-    /// - Parameters:
-    ///   - endpoint: The API endpoint to request.
-    ///   - progressDelegate: An optional delegate for tracking upload progress.
-    /// - Returns: The mock response data if available.
-    /// - Throws: `URLError(.badServerResponse)` if `shouldThrowError` is set to `true`.
+    var requestWithProgressReturnValue: [String: Data] = [:]
+    var shouldThrowErrorForRequestWithProgress: Bool = false
     @discardableResult
     public func request(
         _ endpoint: any APIEndpointProtocol,
         progressDelegate: (any UploadProgressDelegateProtocol)?
     ) async throws -> Data? {
-        if shouldThrowError {
+        if shouldThrowErrorForRequestWithProgress {
             throw URLError(.badServerResponse)
         }
-        return responseMap[endpoint.path]
+
+        guard let encodable = requestWithProgressReturnValue[endpoint.path] else {
+            return nil
+        }
+
+        return encodable
     }
 
-    /// Sets a mock response for a specific endpoint path.
-    /// - Parameters:
-    ///   - response: The `Encodable` object to be returned as mock response data.
-    ///   - path: The endpoint path to associate the response with.
-    /// - Throws: An error if encoding the response to JSON fails.
-    public func setMockResponse<T: Encodable>(
-        _ response: T,
-        forPath path: String
-    ) throws {
-        let data = try JSONEncoder().encode(response)
-        responseMap[path] = data
+    public func clearMockResponses() {
+        requestReturnValue.removeAll()
+        requestWithProgressReturnValue.removeAll()
+        requestVoidReturnValue.removeAll()
     }
 
-    /// Sets whether all requests should throw an error.
-    /// - Parameter value: `true` to simulate request failures, `false` to return mock responses.
-    public func setShouldThrowError(_ value: Bool) {
-        shouldThrowError = value
+    public func resetErrorState() {
+        shouldThrowErrorForRequest = false
+        shouldThrowErrorForRequestWithProgress = false
+        shouldThrowErrorForRequestVoid = false
     }
 }
 
 // MARK: - Default Implementations -
 public extension MockAPIClient {
 
-    /// Simulates a network request and returns a decoded response, using a default `JSONDecoder()`.
-    ///
-    /// - Parameter endpoint: The API endpoint to request.
-    /// - Returns: A decoded response of type `T`.
-    /// - Throws: `URLError(.badServerResponse)` if no mock response is found or if `shouldThrowError` is set to `true`.
     func request<T: Decodable & Sendable>(
         _ endpoint: any APIEndpointProtocol
     ) async throws -> T {

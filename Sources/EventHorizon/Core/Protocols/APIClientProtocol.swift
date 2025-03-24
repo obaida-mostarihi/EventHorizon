@@ -10,8 +10,8 @@ import Foundation
 /// - Note: Conforming types must be `Sendable` to ensure thread safety.
 public protocol APIClientProtocol: Sendable {
     var interceptors: [any NetworkInterceptor] { get }
-    var session: URLSession { get }
-    
+    var session: NetworkSessionProtocol { get }
+
     /// Sends a request to the specified endpoint and decodes the response into the specified type.
     ///
     /// - Parameters:

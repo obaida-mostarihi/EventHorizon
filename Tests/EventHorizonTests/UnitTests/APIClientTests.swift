@@ -17,7 +17,9 @@ final class APIClientTests: XCTestCase {
 
         let config = URLSessionConfiguration.ephemeral
         config.protocolClasses = [MockURLProtocol.self]
-        let session = URLSession(configuration: config)
+        let session = NetworkSession(
+            session: URLSession(configuration: config)
+        )
 
         apiClient = APIClient(
             session: session,
@@ -31,7 +33,7 @@ final class APIClientTests: XCTestCase {
     }
 
     // MARK: - Tests
-    func testRequest_Success() async throws {
+    func test_request_success() async throws {
         let expectedResponse = MockResponse(message: EventHorizonTestsConstants.successMessage)
         let responseData = try JSONEncoder().encode(expectedResponse)
 
@@ -46,7 +48,7 @@ final class APIClientTests: XCTestCase {
         XCTAssertEqual(result.message, EventHorizonTestsConstants.successMessage)
     }
 
-    func testRequest_Failure() async {
+    func test_request_failure() async {
         MockURLProtocol.mockResponse = (nil, nil, URLError(.badServerResponse))
 
         await XCTAssertThrowsErrorAsync(
@@ -56,7 +58,7 @@ final class APIClientTests: XCTestCase {
         }
     }
 
-    func testRequest_correct_method() async throws {
+    func test_request_correct_method() async throws {
         let endpoint = MockAPIEndpoint(method: .post)
         let expectedResponse = MockResponse(message: EventHorizonTestsConstants.successMessage)
         let responseData = try JSONEncoder().encode(expectedResponse)
@@ -77,7 +79,7 @@ final class APIClientTests: XCTestCase {
     }
 
     // MARK: - Void Request Tests
-    func test_request_Void_Success() async throws {
+    func test_request_void_success() async throws {
         MockURLProtocol.mockResponse = (
             nil,
             HTTPURLResponse(url: URL(string: EventHorizonTestsConstants.testURL)!,
@@ -94,7 +96,7 @@ final class APIClientTests: XCTestCase {
         }
     }
 
-    func testRequestVoid_Failure() async {
+    func test_request_void_failure() async {
         MockURLProtocol.mockResponse = (nil, nil, URLError(.badServerResponse))
 
         await XCTAssertThrowsErrorAsync(
@@ -105,7 +107,7 @@ final class APIClientTests: XCTestCase {
     }
 
     // MARK: - Progress Request Tests
-    func testRequest_WithProgress_Failure() async {
+    func test_request_with_progress_failure() async {
         MockURLProtocol.mockResponse = (nil, nil, URLError(.badServerResponse))
 
         await XCTAssertThrowsErrorAsync(
