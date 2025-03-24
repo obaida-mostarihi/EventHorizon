@@ -16,7 +16,7 @@ import Foundation
 ///
 /// - Note: The `tokenProvider` is a closure that returns an optional `String` representing the authentication token.
 ///         It is marked as `@Sendable` to ensure thread-safety when accessed in concurrent execution contexts.
-public struct AuthInterceptor: NetworkInterceptor, Sendable {
+public struct AuthInterceptor: NetworkInterceptorProtocol {
     private let tokenProvider: @Sendable () -> String?
 
     public init(

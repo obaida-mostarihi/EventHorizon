@@ -6,7 +6,7 @@ import Foundation
 /// requests do not hang indefinitely. This is useful for enforcing strict request timing policies.
 ///
 /// - Note: This interceptor does not modify the response.
-public struct RequestTimeoutInterceptor: NetworkInterceptor, Sendable {
+public struct RequestTimeoutInterceptor: NetworkInterceptorProtocol {
     private let timeout: TimeInterval
 
     public init(timeout: TimeInterval) {

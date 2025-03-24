@@ -4,12 +4,12 @@ public final class APIClient: APIClientProtocol {
 
     // MARK: - Properties -
     public let session: NetworkSessionProtocol
-    public let interceptors: [any NetworkInterceptor]
+    public let interceptors: [any NetworkInterceptorProtocol]
 
     // MARK: - Initialization -
     public init(
         session: NetworkSessionProtocol = NetworkSession(),
-        interceptors: [any NetworkInterceptor] = []
+        interceptors: [any NetworkInterceptorProtocol] = []
     ) {
         self.session = session
         self.interceptors = interceptors

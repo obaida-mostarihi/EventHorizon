@@ -8,7 +8,7 @@ import Foundation
 /// - Important: This interceptor does not execute the retries itself.
 ///   The actual retry mechanism must be implemented in the network client.
 /// - Note: This implementation does not modify the request itself.
-public struct RetryInterceptor: NetworkInterceptor, Sendable {
+public struct RetryInterceptor: NetworkInterceptorProtocol {
     private let maxRetries: Int
 
     public init(maxRetries: Int = 3) {

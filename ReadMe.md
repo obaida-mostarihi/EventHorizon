@@ -88,7 +88,7 @@ import EventHorizon
 
 let apiClient = APIClient(
     interceptors: [
-        // Inject any NetworkInterceptor
+        // Inject any NetworkInterceptorProtocol
         LoggingInterceptor()
     ]
 )

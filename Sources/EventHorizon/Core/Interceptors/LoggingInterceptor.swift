@@ -6,7 +6,7 @@ import Foundation
 /// making it easier to debug API calls and inspect request headers, body, and responses.
 ///
 /// - Important: This interceptor should be used only in debug builds to avoid exposing sensitive data in production logs.
-public struct LoggingInterceptor: NetworkInterceptor, Sendable {
+public struct LoggingInterceptor: NetworkInterceptorProtocol {
 
     public init() {}
 

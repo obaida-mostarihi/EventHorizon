@@ -8,7 +8,7 @@ import Foundation
 ///
 /// - Note: This interceptor does not modify the response.
 /// - Important: Ensure sensitive headers, such as authentication tokens, are handled securely.
-public struct HeaderInjectorInterceptor: NetworkInterceptor, Sendable {
+public struct HeaderInjectorInterceptor: NetworkInterceptorProtocol {
     private let headers: [String: String]
 
     public init(headers: [String: String]) {

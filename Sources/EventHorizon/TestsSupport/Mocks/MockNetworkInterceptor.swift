@@ -1,18 +1,18 @@
 //
-//  MockNetworkInterceptor.swift
+//  MockNetworkInterceptorProtocol.swift
 //  EventHorizon
 //
 
 import Foundation
 
-/// A mock implementation of `NetworkInterceptor` for testing network request and response modifications.
+/// A mock implementation of `NetworkInterceptorProtocol` for testing network request and response modifications.
 ///
-/// `MockNetworkInterceptor` allows customization of request and response handling
+/// `MockNetworkInterceptorProtocol` allows customization of request and response handling
 /// through closures, making it useful for testing network behavior in unit tests.
 ///
 /// ## Usage
 /// ```swift
-/// let interceptor = MockNetworkInterceptor(
+/// let interceptor = MockNetworkInterceptorProtocol(
 ///     requestModifier: { request in
 ///         var modifiedRequest = request
 ///         modifiedRequest.addValue("Mock-Header", forHTTPHeaderField: "Authorization")
@@ -26,7 +26,7 @@ import Foundation
 /// ```
 ///
 /// - Note: This class is designed for testing and should not be used in production.
-public final class MockNetworkInterceptor: NetworkInterceptor {
+public final class MockNetworkInterceptorProtocol: NetworkInterceptorProtocol {
 
     private let requestModifier: (@Sendable (URLRequest) -> URLRequest)?
     private let responseModifier: (@Sendable (URLResponse?, Data?) -> (URLResponse?, Data?))?

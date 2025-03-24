@@ -9,7 +9,7 @@ import Foundation
 /// Implement this protocol to customize network behavior. For example:
 ///
 /// ```swift
-/// struct AuthInterceptor: NetworkInterceptor {
+/// struct AuthInterceptor: NetworkInterceptorProtocol {
 ///     private let tokenProvider: () -> String?
 ///
 ///     init(tokenProvider: @escaping () -> String?) {
@@ -39,7 +39,7 @@ import Foundation
 /// - **Retries:** Retry failed requests under certain conditions.
 /// - **Custom Headers:** Inject common headers like `User-Agent` or `Accept-Language`.
 ///
-public protocol NetworkInterceptor: Sendable {
+public protocol NetworkInterceptorProtocol: Sendable {
     /// Intercepts and potentially modifies an outgoing network request before it is sent.
     ///
     /// - Parameter request: The original `URLRequest` to be sent.

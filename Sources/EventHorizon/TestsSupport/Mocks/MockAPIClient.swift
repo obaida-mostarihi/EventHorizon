@@ -8,11 +8,11 @@ import Foundation
 public actor MockAPIClient: APIClientProtocol {
 
     // MARK: - Properties -
-    public let interceptors: [NetworkInterceptor]
+    public let interceptors: [NetworkInterceptorProtocol]
     public let session: NetworkSessionProtocol
 
     public init(
-        interceptors: [NetworkInterceptor] = [MockNetworkInterceptor()]
+        interceptors: [NetworkInterceptorProtocol] = [MockNetworkInterceptorProtocol()]
     ) {
         self.interceptors = interceptors
         self.session = NetworkSession(

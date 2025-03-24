@@ -23,7 +23,7 @@ final class APIClientTests: XCTestCase {
 
         apiClient = APIClient(
             session: session,
-            interceptors: [MockNetworkInterceptor()]
+            interceptors: [MockNetworkInterceptorProtocol()]
         )
     }
 
