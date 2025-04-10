@@ -34,4 +34,13 @@ public enum APIClientError: Error {
     /// Indicates a network-related error occurred.
     /// - Parameter error: The underlying network error encountered.
     case networkError(any Error)
+
+    /// Indicates that a task is already in progress or queued.
+    case taskInProgress
+
+    /// Indicates that the task was canceled.
+    case taskCanceled
+
+    /// Indicates that the task is already finished.
+    case taskFinished
 }

@@ -1,62 +1,136 @@
 import Foundation
 
+// TOOD: Inject logger
 public final class APIClient: APIClientProtocol {
 
     // MARK: - Properties -
     public let session: NetworkSessionProtocol
     public let interceptors: [any NetworkInterceptorProtocol]
+    private let taskManager: APIClientTaskManagerProtocol
 
     // MARK: - Initialization -
     public init(
         session: NetworkSessionProtocol = NetworkSession(),
-        interceptors: [any NetworkInterceptorProtocol] = []
+        interceptors: [any NetworkInterceptorProtocol] = [],
+        taskManager: APIClientTaskManagerProtocol = APIClientTaskManager.shared
     ) {
         self.session = session
         self.interceptors = interceptors
+        self.taskManager = taskManager
     }
 
     // MARK: - Methods -
     public func request<T: Decodable & Sendable>(
         _ endpoint: any APIEndpointProtocol,
-        decoder: JSONDecoder = JSONDecoder()
+        decoder: JSONDecoder = JSONDecoder(),
+        id: String
     ) async throws -> T {
         guard let request = endpoint.urlRequest else {
             throw APIClientError.invalidURL
         }
 
-        let data = try await performRequest(request)
-        do {
-            return try decoder.decode(T.self, from: data)
-        } catch {
-            throw APIClientError.decodingFailed(error)
+        guard !(taskManager.isTaskInProgress(id) || taskManager.isTaskQueued(id)) else {
+            throw APIClientError.taskInProgress
         }
+        guard !taskManager.isTaskFinished(id) else {
+            throw APIClientError.taskFinished
+        }
+        guard !taskManager.isTaskCanceled(id) else {
+            throw APIClientError.taskCanceled
+        }
+
+        let task = Task {
+            let data = try await performRequest(request)
+            return try decoder.decode(T.self, from: data)
+        }
+
+        taskManager.addTask(task, for: id)
+
+        defer {
+            taskManager.setTaskStatus(
+                for: id,
+                status: .finished
+            )
+        }
+
+        return try await task.value
     }
 
     public func request(
-        _ endpoint: any APIEndpointProtocol
+        _ endpoint: any APIEndpointProtocol,
+        id: String
     ) async throws {
         guard let request = endpoint.urlRequest else {
             throw APIClientError.invalidURL
         }
 
-        try await performRequest(request)
+        guard !(taskManager.isTaskInProgress(id) || taskManager.isTaskQueued(id)) else {
+            throw APIClientError.taskInProgress
+        }
+        guard !taskManager.isTaskFinished(id) else {
+            throw APIClientError.taskFinished
+        }
+        guard !taskManager.isTaskCanceled(id) else {
+            throw APIClientError.taskCanceled
+        }
+
+        let task = Task {
+            try await performRequest(request)
+        }
+
+        taskManager.addTask(task, for: id)
+
+        defer {
+            taskManager.setTaskStatus(
+                for: id,
+                status: .finished
+            )
+        }
+
+        _ = try await task.value
     }
 
     @discardableResult
     public func request(
         _ endpoint: any APIEndpointProtocol,
-        progressDelegate: (any UploadProgressDelegateProtocol)?
+        progressDelegate: (any UploadProgressDelegateProtocol)?,
+        id: String
     ) async throws -> Data? {
         guard let request = endpoint.urlRequest else {
             throw APIClientError.urlRequestIsEmpty
         }
+        guard !taskManager.isTaskFinished(id) else {
+            throw APIClientError.taskFinished
+        }
+        guard !taskManager.isTaskCanceled(id) else {
+            throw APIClientError.taskCanceled
+        }
+        guard !(taskManager.isTaskInProgress(id) || taskManager.isTaskQueued(id)) else {
+            throw APIClientError.taskInProgress
+        }
 
-        do {
+        let task = Task {
             let data = try await performRequest(request, progressDelegate: progressDelegate)
             return data
-        } catch {
-            throw error
         }
+        taskManager.addTask(task, for: id)
+
+        defer {
+            taskManager.setTaskStatus(
+                for: id,
+                status: .finished
+            )
+        }
+
+        return try await task.value
+    }
+
+    public func cancelRequest(id: String) {
+        taskManager.cancelTask(for: id)
+    }
+
+    public func cancelAllRequests() {
+        taskManager.cancelAllTasks()
     }
 }
 
@@ -117,10 +191,10 @@ private extension APIClient {
 
 // MARK: - Log extension -
 private extension APIClient {
-
     private func log(_ string: String) {
         #if DEBUG
         print(string)
         #endif
     }
 }
+

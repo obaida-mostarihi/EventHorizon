@@ -43,7 +43,11 @@ final class APIClientTests: XCTestCase {
             nil
         )
 
-        let result: MockResponse = try await apiClient.request(MockAPIEndpoint(), decoder: JSONDecoder())
+        let result: MockResponse = try await apiClient.request(
+            MockAPIEndpoint(),
+            decoder: JSONDecoder(),
+            id: UUID().uuidString
+        )
 
         XCTAssertEqual(result.message, EventHorizonTestsConstants.successMessage)
     }
@@ -72,7 +76,11 @@ final class APIClientTests: XCTestCase {
             nil
         )
 
-        let result: MockResponse = try await apiClient.request(endpoint, decoder: JSONDecoder())
+        let result: MockResponse = try await apiClient.request(
+            endpoint,
+            decoder: JSONDecoder(),
+            id: UUID().uuidString
+        )
 
         XCTAssertEqual(result.message, EventHorizonTestsConstants.successMessage)
         XCTAssertEqual(endpoint.method, .post)
