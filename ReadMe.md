@@ -23,6 +23,8 @@ let posts: [PostDTO] = try await apiClient.request(APIEndpoint.getPosts)
 - **Asynchronous** execution with Swift's async/await.
 - **Interceptor-based customization** for request and response handling.
 - **Direct access to URLSession** for low-level operations, SSL pining, mocking, caching rules, unit testing, and more.
+- **TaskManager** to track and manage requests status, like `queued`, `inProgress`, `finished`, or `canceled`.
+- **EHLoggerProtocol** keeps track of logs in any kind of environment.
 
 ## Interceptors
 EventHorizon includes a set of built-in interceptors, but you can create and inject your custom interceptors as needed.
