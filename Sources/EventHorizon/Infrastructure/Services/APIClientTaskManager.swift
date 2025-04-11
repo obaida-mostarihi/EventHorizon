@@ -3,11 +3,11 @@ import Foundation
 public final class APIClientTaskManager: APIClientTaskManagerProtocol, @unchecked Sendable {
 
     // MARK: - Properties -
-    private let lock = NSLock()
-    private var tasks: [String: Any] = [:]
-    public var taskStatuses: [String: TaskStatus] = [:]
-    private let logger: EHLoggerProtocol
     public static let shared = APIClientTaskManager()
+    private var taskStatuses: [String: TaskStatus] = [:]
+    private let logger: EHLoggerProtocol
+    private let lock = NSLock()
+    private var tasks: [String: any Sendable] = [:]
 
     // MARK: - Initialization -
     public init(logger: EHLoggerProtocol = DefaultEHLogger()) {
@@ -15,7 +15,10 @@ public final class APIClientTaskManager: APIClientTaskManagerProtocol, @unchecke
     }
 
     // MARK: - Methods -
-    public func addTask<T>(_ task: Task<T, any Error>, for id: String) {
+    public func addTask<T>(
+        _ task: Task<T, any Error>,
+        for id: String
+    ) {
         lock.lock()
 
         // Prevent adding tasks that are finished or canceled

@@ -1,5 +1,5 @@
 /// Represents the possible statuses of a task.
-public enum TaskStatus {
+public enum TaskStatus: Sendable {
     
     /// The task is queued and waiting to be executed.
     case queued

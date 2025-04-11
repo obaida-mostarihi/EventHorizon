@@ -7,11 +7,6 @@ import Foundation
 /// Conforms to `Sendable` to ensure thread-safety when accessing or modifying tasks in concurrent environments.
 public protocol APIClientTaskManagerProtocol: Sendable {
 
-    /// A dictionary that holds the statuses of tasks, keyed by their unique identifiers.
-    ///
-    /// The statuses represent the current state of each task, such as whether it's queued, in-progress, finished, or canceled.
-    var taskStatuses: [String: TaskStatus] { get }
-
     /// Adds a new task to the manager.
     ///
     /// This method adds a task to the task manager for tracking. The task status is set to `.queued` by default.
