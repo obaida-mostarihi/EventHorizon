@@ -10,15 +10,18 @@ public actor MockAPIClient: @preconcurrency APIClientProtocol {
     // MARK: - Properties -
     public let interceptors: [NetworkInterceptorProtocol]
     public let session: NetworkSessionProtocol
-    private var activeRequests: [String: Any] = [:]
+    private let taskManager: APIClientTaskManagerProtocol
+    private let logger: EHLoggerProtocol
 
     public init(
-        interceptors: [NetworkInterceptorProtocol] = [MockNetworkInterceptorProtocol()]
+        interceptors: [NetworkInterceptorProtocol] = [MockNetworkInterceptorProtocol()],
+        taskManager: APIClientTaskManagerProtocol = APIClientTaskManager.shared,
+        logger: EHLoggerProtocol = DefaultEHLogger()
     ) {
         self.interceptors = interceptors
-        self.session = NetworkSession(
-            session: URLSession(configuration: .ephemeral)
-        )
+        self.session = NetworkSession(session: URLSession(configuration: .ephemeral))
+        self.taskManager = taskManager
+        self.logger = logger
     }
 
     // MARK: - Methods -
@@ -29,6 +32,16 @@ public actor MockAPIClient: @preconcurrency APIClientProtocol {
         decoder: JSONDecoder,
         id: String
     ) async throws -> T {
+        guard !(taskManager.isTaskInProgress(id) || taskManager.isTaskQueued(id)) else {
+            throw APIClientError.taskInProgress
+        }
+        guard !taskManager.isTaskFinished(id) else {
+            throw APIClientError.taskFinished
+        }
+        guard !taskManager.isTaskCanceled(id) else {
+            throw APIClientError.taskCanceled
+        }
+
         if shouldThrowErrorForRequest {
             throw URLError(.badServerResponse)
         }
@@ -46,8 +59,11 @@ public actor MockAPIClient: @preconcurrency APIClientProtocol {
             return try decoder.decode(T.self, from: data)
         }
 
-        // Store the task in activeRequests
-        activeRequests[id] = task
+        taskManager.addTask(task, for: id)
+
+        defer {
+            taskManager.setTaskStatus(for: id, status: .finished)
+        }
 
         return try await task.value
     }
@@ -58,13 +74,28 @@ public actor MockAPIClient: @preconcurrency APIClientProtocol {
         _ endpoint: any APIEndpointProtocol,
         id: String
     ) async throws {
+        guard !(taskManager.isTaskInProgress(id) || taskManager.isTaskQueued(id)) else {
+            throw APIClientError.taskInProgress
+        }
+        guard !taskManager.isTaskFinished(id) else {
+            throw APIClientError.taskFinished
+        }
+        guard !taskManager.isTaskCanceled(id) else {
+            throw APIClientError.taskCanceled
+        }
+
         if shouldThrowErrorForRequestVoid {
             throw URLError(.badServerResponse)
         }
         let task = Task {
             try await Task.sleep(nanoseconds: 1_000_000_000)
         }
-        activeRequests[id] = task
+        taskManager.addTask(task, for: id)
+
+        defer {
+            taskManager.setTaskStatus(for: id, status: .finished)
+        }
+
         _ = try await task.value
     }
 
@@ -76,6 +107,16 @@ public actor MockAPIClient: @preconcurrency APIClientProtocol {
         progressDelegate: (any UploadProgressDelegateProtocol)?,
         id: String
     ) async throws -> Data? {
+        guard !(taskManager.isTaskInProgress(id) || taskManager.isTaskQueued(id)) else {
+            throw APIClientError.taskInProgress
+        }
+        guard !taskManager.isTaskFinished(id) else {
+            throw APIClientError.taskFinished
+        }
+        guard !taskManager.isTaskCanceled(id) else {
+            throw APIClientError.taskCanceled
+        }
+
         if shouldThrowErrorForRequestWithProgress {
             throw URLError(.badServerResponse)
         }
@@ -84,14 +125,17 @@ public actor MockAPIClient: @preconcurrency APIClientProtocol {
             return nil
         }
 
-        let task = Task {
+        let task = Task<Data, any Error> {
             return encodable
         }
 
-        // Store the task in activeRequests
-        activeRequests[id] = task
+        taskManager.addTask(task, for: id)
 
-        return await task.value
+        defer {
+            taskManager.setTaskStatus(for: id, status: .finished)
+        }
+
+        return try await task.value
     }
 
     public func clearMockResponses() {
@@ -108,20 +152,10 @@ public actor MockAPIClient: @preconcurrency APIClientProtocol {
 
     // MARK: - Cancel Methods -
     public func cancelRequest(id: String) {
-        // Cancel a specific request by id
-        if let task = activeRequests[id] as? Task<Void, Never> {
-            task.cancel()
-            activeRequests.removeValue(forKey: id)
-        }
+        taskManager.cancelTask(for: id)
     }
 
     public func cancelAllRequests() {
-        // Cancel all active requests
-        for task in activeRequests.values {
-            if let task = task as? Task<Void, Never> {
-                task.cancel()
-            }
-        }
-        activeRequests.removeAll()
+        taskManager.cancelAllTasks()
     }
 }
