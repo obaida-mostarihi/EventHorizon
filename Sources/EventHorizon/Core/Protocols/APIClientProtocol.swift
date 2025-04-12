@@ -60,7 +60,7 @@ public protocol APIClientProtocol: Sendable {
     /// Cancels an ongoing request with the specified identifier.
     ///
     /// - Parameter id: The unique identifier of the request to cancel.
-    func cancelRequest(id: String)
+    func cancelRequest(with id: String)
 
     /// Cancels all ongoing requests.
     func cancelAllRequests()

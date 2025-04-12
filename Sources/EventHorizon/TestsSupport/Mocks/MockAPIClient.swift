@@ -26,24 +26,25 @@ public actor MockAPIClient: @preconcurrency APIClientProtocol {
 
     // MARK: - Methods -
     var requestReturnValue: [String: Encodable] = [:]
-    var shouldThrowErrorForRequest: Bool = false
+    var requestThrowError: Error? = nil
     public func request<T: Decodable & Sendable>(
         _ endpoint: any APIEndpointProtocol,
         decoder: JSONDecoder,
         id: String
     ) async throws -> T {
-        guard !(taskManager.isTaskInProgress(id) || taskManager.isTaskQueued(id)) else {
-            throw APIClientError.taskInProgress
-        }
-        guard !taskManager.isTaskFinished(id) else {
-            throw APIClientError.taskFinished
-        }
-        guard !taskManager.isTaskCanceled(id) else {
-            throw APIClientError.taskCanceled
+        if let requestThrowError {
+            throw requestThrowError
         }
 
-        if shouldThrowErrorForRequest {
-            throw URLError(.badServerResponse)
+        switch taskManager.getTaskStatus(for: id) {
+            case .finished:
+                throw APIClientError.taskFinished
+            case .canceled:
+                throw APIClientError.taskCanceled
+            case .inProgress, .queued:
+                throw APIClientError.taskInProgress
+            default:
+                break
         }
 
         guard let encodable = requestReturnValue[endpoint.path] else {
@@ -69,24 +70,26 @@ public actor MockAPIClient: @preconcurrency APIClientProtocol {
     }
 
     var requestVoidReturnValue: [String: Void] = [:]
-    var shouldThrowErrorForRequestVoid: Bool = false
+    var requestVoidThrowError: Error? = nil
     public func request(
         _ endpoint: any APIEndpointProtocol,
         id: String
     ) async throws {
-        guard !(taskManager.isTaskInProgress(id) || taskManager.isTaskQueued(id)) else {
-            throw APIClientError.taskInProgress
-        }
-        guard !taskManager.isTaskFinished(id) else {
-            throw APIClientError.taskFinished
-        }
-        guard !taskManager.isTaskCanceled(id) else {
-            throw APIClientError.taskCanceled
+        if let requestVoidThrowError {
+            throw requestVoidThrowError
         }
 
-        if shouldThrowErrorForRequestVoid {
-            throw URLError(.badServerResponse)
+        switch taskManager.getTaskStatus(for: id) {
+            case .finished:
+                throw APIClientError.taskFinished
+            case .canceled:
+                throw APIClientError.taskCanceled
+            case .inProgress, .queued:
+                throw APIClientError.taskInProgress
+            default:
+                break
         }
+
         let task = Task {
             try await Task.sleep(nanoseconds: 1_000_000_000)
         }
@@ -100,25 +103,26 @@ public actor MockAPIClient: @preconcurrency APIClientProtocol {
     }
 
     var requestWithProgressReturnValue: [String: Data] = [:]
-    var shouldThrowErrorForRequestWithProgress: Bool = false
+    var requestWithProgressThrowError: Error? = nil
     @discardableResult
     public func request(
         _ endpoint: any APIEndpointProtocol,
         progressDelegate: (any UploadProgressDelegateProtocol)?,
         id: String
     ) async throws -> Data? {
-        guard !(taskManager.isTaskInProgress(id) || taskManager.isTaskQueued(id)) else {
-            throw APIClientError.taskInProgress
-        }
-        guard !taskManager.isTaskFinished(id) else {
-            throw APIClientError.taskFinished
-        }
-        guard !taskManager.isTaskCanceled(id) else {
-            throw APIClientError.taskCanceled
+        if let requestWithProgressThrowError {
+            throw requestWithProgressThrowError
         }
 
-        if shouldThrowErrorForRequestWithProgress {
-            throw URLError(.badServerResponse)
+        switch taskManager.getTaskStatus(for: id) {
+            case .finished:
+                throw APIClientError.taskFinished
+            case .canceled:
+                throw APIClientError.taskCanceled
+            case .inProgress, .queued:
+                throw APIClientError.taskInProgress
+            default:
+                break
         }
 
         guard let encodable = requestWithProgressReturnValue[endpoint.path] else {
@@ -145,13 +149,13 @@ public actor MockAPIClient: @preconcurrency APIClientProtocol {
     }
 
     public func resetErrorState() {
-        shouldThrowErrorForRequest = false
-        shouldThrowErrorForRequestWithProgress = false
-        shouldThrowErrorForRequestVoid = false
+        requestThrowError = nil
+        requestWithProgressThrowError = nil
+        requestVoidThrowError = nil
     }
 
     // MARK: - Cancel Methods -
-    public func cancelRequest(id: String) {
+    public func cancelRequest(with id: String) {
         taskManager.cancelTask(for: id)
     }
 

@@ -29,35 +29,15 @@ public protocol APIClientTaskManagerProtocol: Sendable {
     ///
     /// This method will cancel every task in the `tasks` dictionary, and each task's status will be updated to `.canceled`.
     func cancelAllTasks()
-
-    /// Checks whether a task is currently in progress.
+    
+    /// Returns the current status of a task with the specified identifier.
     ///
-    /// - Parameter id: The unique identifier for the task to check.
+    /// This method retrieves the `TaskStatus` for a given task ID. If no status is found, it should return `.unknown`.
     ///
-    /// - Returns: `true` if the task is in progress, otherwise `false`.
-    func isTaskInProgress(_ id: String) -> Bool
-
-    /// Checks whether a task is queued for execution.
-    ///
-    /// - Parameter id: The unique identifier for the task to check.
-    ///
-    /// - Returns: `true` if the task is queued, otherwise `false`.
-    func isTaskQueued(_ id: String) -> Bool
-
-    /// Checks whether a task has finished execution.
-    ///
-    /// - Parameter id: The unique identifier for the task to check.
-    ///
-    /// - Returns: `true` if the task has finished, otherwise `false`.
-    func isTaskFinished(_ id: String) -> Bool
-
-    /// Checks whether a task has been canceled.
-    ///
-    /// - Parameter id: The unique identifier for the task to check.
-    ///
-    /// - Returns: `true` if the task has been canceled, otherwise `false`.
-    func isTaskCanceled(_ id: String) -> Bool
-
+    /// - Parameter id: The unique identifier for the task.
+    /// - Returns: The current `TaskStatus` of the task, or `.unknown` if the task does not exist in the manager.
+    func getTaskStatus(for id: String) -> TaskStatus
+    
     /// Sets the status for a specific task.
     ///
     /// This method allows updating the status of a task, such as marking it as queued, in-progress, finished, or canceled.

@@ -33,17 +33,18 @@ public final class APIClient: APIClientProtocol {
         }
         log(APIClientLogMessages.startingEndpoint(endpoint: endpoint))
 
-        guard !(taskManager.isTaskInProgress(id) || taskManager.isTaskQueued(id)) else {
-            logError(APIClientLogMessages.guardFailed(reason: APIClientLogMessages.taskInProgressOrQueued, id: id))
-            throw APIClientError.taskInProgress
-        }
-        guard !taskManager.isTaskFinished(id) else {
-            logError(APIClientLogMessages.guardFailed(reason: APIClientLogMessages.taskAlreadyFinished, id: id))
-            throw APIClientError.taskFinished
-        }
-        guard !taskManager.isTaskCanceled(id) else {
-            logError(APIClientLogMessages.guardFailed(reason: APIClientLogMessages.taskCanceled, id: id))
-            throw APIClientError.taskCanceled
+        switch taskManager.getTaskStatus(for: id) {
+            case .finished:
+                logError(APIClientLogMessages.guardFailed(reason: APIClientLogMessages.taskAlreadyFinished, id: id))
+                throw APIClientError.taskFinished
+            case .canceled:
+                logError(APIClientLogMessages.guardFailed(reason: APIClientLogMessages.taskCanceled, id: id))
+                throw APIClientError.taskCanceled
+            case .inProgress, .queued:
+                logError(APIClientLogMessages.guardFailed(reason: APIClientLogMessages.taskInProgressOrQueued, id: id))
+                throw APIClientError.taskInProgress
+            default:
+                break
         }
 
         let task = Task {
@@ -75,17 +76,18 @@ public final class APIClient: APIClientProtocol {
         }
         log(APIClientLogMessages.startingEndpoint(endpoint: endpoint))
 
-        guard !(taskManager.isTaskInProgress(id) || taskManager.isTaskQueued(id)) else {
-            logError(APIClientLogMessages.guardFailed(reason: APIClientLogMessages.taskInProgressOrQueued, id: id))
-            throw APIClientError.taskInProgress
-        }
-        guard !taskManager.isTaskFinished(id) else {
-            logError(APIClientLogMessages.guardFailed(reason: APIClientLogMessages.taskAlreadyFinished, id: id))
-            throw APIClientError.taskFinished
-        }
-        guard !taskManager.isTaskCanceled(id) else {
-            logError(APIClientLogMessages.guardFailed(reason: APIClientLogMessages.taskCanceled, id: id))
-            throw APIClientError.taskCanceled
+        switch taskManager.getTaskStatus(for: id) {
+            case .finished:
+                logError(APIClientLogMessages.guardFailed(reason: APIClientLogMessages.taskAlreadyFinished, id: id))
+                throw APIClientError.taskFinished
+            case .canceled:
+                logError(APIClientLogMessages.guardFailed(reason: APIClientLogMessages.taskCanceled, id: id))
+                throw APIClientError.taskCanceled
+            case .inProgress, .queued:
+                logError(APIClientLogMessages.guardFailed(reason: APIClientLogMessages.taskInProgressOrQueued, id: id))
+                throw APIClientError.taskInProgress
+            default:
+                break
         }
 
         let task = Task {
@@ -122,17 +124,18 @@ public final class APIClient: APIClientProtocol {
         }
         log(APIClientLogMessages.startingEndpoint(endpoint: endpoint))
 
-        guard !taskManager.isTaskFinished(id) else {
-            logError(APIClientLogMessages.guardFailed(reason: APIClientLogMessages.taskAlreadyFinished, id: id))
-            throw APIClientError.taskFinished
-        }
-        guard !taskManager.isTaskCanceled(id) else {
-            logError(APIClientLogMessages.guardFailed(reason: APIClientLogMessages.taskCanceled, id: id))
-            throw APIClientError.taskCanceled
-        }
-        guard !(taskManager.isTaskInProgress(id) || taskManager.isTaskQueued(id)) else {
-            logError(APIClientLogMessages.guardFailed(reason: APIClientLogMessages.taskInProgressOrQueued, id: id))
-            throw APIClientError.taskInProgress
+        switch taskManager.getTaskStatus(for: id) {
+            case .finished:
+                logError(APIClientLogMessages.guardFailed(reason: APIClientLogMessages.taskAlreadyFinished, id: id))
+                throw APIClientError.taskFinished
+            case .canceled:
+                logError(APIClientLogMessages.guardFailed(reason: APIClientLogMessages.taskCanceled, id: id))
+                throw APIClientError.taskCanceled
+            case .inProgress, .queued:
+                logError(APIClientLogMessages.guardFailed(reason: APIClientLogMessages.taskInProgressOrQueued, id: id))
+                throw APIClientError.taskInProgress
+            default:
+                break
         }
 
         let task = Task {
@@ -153,7 +156,7 @@ public final class APIClient: APIClientProtocol {
         return result
     }
 
-    public func cancelRequest(id: String) {
+    public func cancelRequest(with id: String) {
         log(APIClientLogMessages.cancellingRequest(id: id))
         taskManager.cancelTask(for: id)
     }

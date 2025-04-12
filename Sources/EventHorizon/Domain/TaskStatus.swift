@@ -1,6 +1,9 @@
 /// Represents the possible statuses of a task.
 public enum TaskStatus: Sendable {
     
+    // The task status is unknown.
+    case unknown
+
     /// The task is queued and waiting to be executed.
     case queued
     

@@ -70,40 +70,17 @@ public final class APIClientTaskManager: APIClientTaskManagerProtocol, @unchecke
         logger.log(message: LogMessages.allTasksCanceled, type: .debug)
     }
 
-    public func isTaskInProgress(_ id: String) -> Bool {
+    public func getTaskStatus(for id: String) -> TaskStatus {
         lock.lock()
         defer { lock.unlock() }
-        let inProgress = taskStatuses[id] == .inProgress
-        logger.log(message: LogMessages.taskInProgress(id: id, inProgress: inProgress), type: .debug)
-        return inProgress
+        return taskStatuses[id] ?? .unknown
     }
+}
 
-    public func isTaskQueued(_ id: String) -> Bool {
-        lock.lock()
-        defer { lock.unlock() }
-        let queued = taskStatuses[id] == .queued
-        logger.log(message: LogMessages.taskQueued(id: id, queued: queued), type: .debug)
-        return queued
-    }
-
-    public func isTaskFinished(_ id: String) -> Bool {
-        lock.lock()
-        defer { lock.unlock() }
-        let finished = taskStatuses[id] == .finished
-        logger.log(message: LogMessages.taskFinished(id: id, finished: finished), type: .debug)
-        return finished
-    }
-
-    public func isTaskCanceled(_ id: String) -> Bool {
-        lock.lock()
-        defer { lock.unlock() }
-        let canceled = taskStatuses[id] == .canceled
-        logger.log(message: LogMessages.taskCanceledStatus(id: id, canceled: canceled), type: .debug)
-        return canceled
-    }
+private extension APIClientTaskManager {
 
     // MARK: - Log Messages -
-    private enum LogMessages {
+    enum LogMessages {
         static func taskAlreadyFinishedOrCanceled(id: String) -> String {
             "Attempted to add a task for id \(id), but it's already finished or canceled."
         }
