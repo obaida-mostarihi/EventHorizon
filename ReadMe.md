@@ -19,13 +19,12 @@ let posts: [PostDTO] = try await apiClient.request(APIEndpoint.getPosts)
 ```
 
 ## Features
-
-💡 **Type-Safe API Calls** – Leverage Swift’s powerful generics to avoid runtime surprises.  
-⚡️ **Async/Await Execution** – Embrace modern Swift concurrency for cleaner code.  
-🧩 **Flexible Interceptors** – Seamlessly plug into request and response flows.  
-🔍 **Low-Level Access** – Direct control over `URLSession` for SSL pinning, mocking, and more.  
-🚥 **Request Lifecycle** – Manage tasks with built-in support for queueing, progress, cancellation, and completion.  
-🧾 **Environment-Aware Logging** – Customizable `EHLoggerProtocol` adapts to any runtime scenario.  
+💡 **Type-Safe API Calls** – Strongly typed networking built with Swift generics.  
+⚡️ **Async/Await Execution** – Modern concurrency for structured asynchronous workflows.  
+🧩 **Flexible Interceptors** – Global hooks for request and response customization.  
+🔍 **Low-Level Access** – Full control over `URLSession` for advanced configurations.  
+🚥 **Request Lifecycle** – Built-in task tracking for queuing, execution, and cancellation.  
+🧾 **Environment-Aware Logging** – Configurable logging via `EHLoggerProtocol` for any environment. 
 
 ## Interceptors
 EventHorizon includes a set of built-in interceptors, but you can create and inject your custom interceptors as needed.
