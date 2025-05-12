@@ -218,10 +218,12 @@ private extension APIClient {
             logError(APIClientLogMessages.requestFailed(error: error))
             logError(APIClientLogMessages.failedRequestDetails(request: request))
             if let urlError = error as? URLError {
-                throw APIClientError.networkError(urlError)
-            } else {
-                throw APIClientError.requestFailed(error)
-            }
+                  throw APIClientError.networkError(urlError)
+              } else if let apiError = error as? APIClientError {
+                  throw apiError 
+              } else {
+                  throw APIClientError.requestFailed(error)
+              }
         }
     }
 }
