@@ -54,8 +54,11 @@ public extension APIEndpointProtocol {
     /// ```
     var urlRequest: URLRequest? {
         var components = URLComponents(string: baseURL + apiVersion + path)
-        components?.queryItems = urlParams.map { key, value in
-            URLQueryItem(name: key, value: String(describing: value))
+        
+        if !urlParams.isEmpty {
+            components?.queryItems = urlParams.map { key, value in
+                URLQueryItem(name: key, value: String(describing: value))
+            }
         }
         
         guard let url = components?.url else { return nil }
