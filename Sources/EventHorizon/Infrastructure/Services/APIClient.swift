@@ -210,7 +210,7 @@ private extension APIClient {
             }
 
             guard (200...299).contains(httpResponse.statusCode) else {
-                throw APIClientError.statusCode(httpResponse.statusCode)
+                throw APIClientError.errorResponse(data: modifiedData, statusCode: httpResponse.statusCode)
             }
 
             return modifiedData
