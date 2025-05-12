@@ -31,6 +31,8 @@ public enum APIClientError: Error {
     /// - Parameter code: The HTTP status code received.
     case statusCode(Int)
 
+    case errorResponse(data: Data, statusCode: Int)
+
     /// Indicates a network-related error occurred.
     /// - Parameter error: The underlying network error encountered.
     case networkError(any Error)
