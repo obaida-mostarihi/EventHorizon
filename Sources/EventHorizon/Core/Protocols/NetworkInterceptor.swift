@@ -57,7 +57,11 @@ public protocol NetworkInterceptorProtocol: Sendable {
         data: Data?
     ) -> (URLResponse?, Data?)
     
-    // MARK: - Asynchronous API (Optional)
+    /// Asynchronously intercepts and potentially modifies an outgoing network request before it is sent.
+    ///
+    /// - Parameter request: The original `URLRequest` to be sent.
+    /// - Returns: A modified `URLRequest` that will be executed.
+    /// - Throws: An error if interception fails.
     func interceptAsync(request: URLRequest) async throws -> URLRequest
     func interceptAsync(response: URLResponse?, data: Data?) async throws -> (URLResponse?, Data?)
 }
