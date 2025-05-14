@@ -63,6 +63,13 @@ public protocol NetworkInterceptorProtocol: Sendable {
     /// - Returns: A modified `URLRequest` that will be executed.
     /// - Throws: An error if interception fails.
     func interceptAsync(request: URLRequest) async throws -> URLRequest
+    /// Asynchronously intercepts and potentially modifies the response received from the network.
+    ///
+    /// - Parameters:
+    ///   - response: The original `URLResponse` received from the server.
+    ///   - data: The raw `Data` returned from the request.
+    /// - Returns: A tuple containing the modified response and data.
+    /// - Throws: An error if interception fails.
     func interceptAsync(response: URLResponse?, data: Data?) async throws -> (URLResponse?, Data?)
 }
 
