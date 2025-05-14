@@ -86,6 +86,13 @@ public extension NetworkInterceptorProtocol {
     ///   - response: The original `URLResponse` received from the server.
     ///   - data: The raw `Data` returned from the request.
     /// - Returns: A tuple containing the modified response and data.
+    /// Provides a default asynchronous implementation of response interception
+    /// by delegating to the synchronous `intercept(response:data:)` method.
+    ///
+    /// - Parameters:
+    ///   - response: The original `URLResponse` received from the server.
+    ///   - data: The raw `Data` returned from the request.
+    /// - Returns: A tuple containing the modified response and data.
     func interceptAsync(response: URLResponse?, data: Data?) async throws -> (URLResponse?, Data?) {
         intercept(response: response, data: data)
     }
